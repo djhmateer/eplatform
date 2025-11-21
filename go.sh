@@ -42,5 +42,4 @@ echo "Build completed in $((step_end - step_start)) seconds"
 
 echo "Step 5: Starting application..."
 
-# Have got middleware.js for logging on prod
 pnpm start
