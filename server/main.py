@@ -5,6 +5,9 @@ from pathlib import Path
 
 app = FastAPI()
 
+DIST_PATH = Path(__file__).parent.parent / "client" / "dist"
+
+
 # API routes
 @app.get("/api/health")
 def health():
@@ -12,13 +15,12 @@ def health():
 
 
 # Serve frontend in production
-dist_path = Path(__file__).parent.parent / "client" / "dist"
-if dist_path.exists():
-    app.mount("/assets", StaticFiles(directory=dist_path / "assets"), name="assets")
+@app.get("/{path:path}")
+def serve_frontend(path: str):
+    if not DIST_PATH.exists():
+        return {"error": "Frontend not built"}
 
-    @app.get("/{path:path}")
-    def serve_frontend(path: str):
-        file_path = dist_path / path
-        if file_path.exists() and file_path.is_file():
-            return FileResponse(file_path)
-        return FileResponse(dist_path / "index.html")
+    file_path = DIST_PATH / path
+    if file_path.exists() and file_path.is_file():
+        return FileResponse(file_path)
+    return FileResponse(DIST_PATH / "index.html")
