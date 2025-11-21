@@ -1,8 +1,8 @@
 #!/bin/bash
 
 # Kill any existing instances
-echo "Killing anything on port 8000..."
-sudo netstat -tulnp | grep 8000 | awk '{print $7}' | cut -d'/' -f1 | xargs -r sudo kill -9
+echo "Killing anything on port 3000..."
+sudo netstat -tulnp | grep 3000 | awk '{print $7}' | cut -d'/' -f1 | xargs -r sudo kill -9
 
 echo "Step 1: Pulling latest changes..."
 git pull
@@ -22,4 +22,5 @@ cd ../server
 uv sync
 
 echo "Step 5: Starting FastAPI server..."
-uv run uvicorn main:app --host 0.0.0.0 --port 8000
+# uv run uvicorn main:app --host 0.0.0.0 --port 8000
+uv run uvicorn main:app --host 0.0.0.0 --port 3000
