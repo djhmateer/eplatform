@@ -12,11 +12,17 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Load environment-specific variables
-env = os.getenv('ENVIRONMENT', 'development')
-env_file = f'.env.{env}'
-loaded = load_dotenv(env_file)
+env = os.getenv('ENVIRONMENT')
+if not env:
+    raise ValueError("ENVIRONMENT variable not set. Must be 'development' or 'production'")
 logger.info(f"Environment: {env}")
-logger.info(f"Loading env file: {env_file} ({'SUCCESS' if loaded else 'NOT FOUND'})")
+
+# Load environment file from server directory
+env_file = Path(__file__).parent / f'.env.{env}'
+env_loaded = load_dotenv(env_file)
+
+logger.info(f"Env file path: {env_file}")
+logger.info(f"Env file loaded: {'SUCCESS' if env_loaded else 'NOT FOUND'}")
 logger.info(f"PORT from env: {os.getenv('PORT', 'not set')}")
 
 app = FastAPI()

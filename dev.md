@@ -3,8 +3,7 @@
 
 ```bash
 cd server
-export ENVIRONMENT=development
-uv run uvicorn main:app --reload --port 8000
+ENVIRONMENT=development uv run uvicorn main:app --reload --port 8000
 
 # react - vite - port 5173 - custom node webserver
 cd client 
