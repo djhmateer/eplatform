@@ -1,6 +1,5 @@
 from fastapi import FastAPI
 from fastapi.responses import FileResponse
-from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 import os
 import logging
@@ -19,26 +18,19 @@ logger.info(f"Environment: {env}")
 
 # Load environment file from server directory
 env_file = Path(__file__).parent / f'.env.{env}'
-env_loaded = load_dotenv(env_file)
-
 logger.info(f"Env file path: {env_file}")
-logger.info(f"Env file loaded: {'SUCCESS' if env_loaded else 'NOT FOUND'}")
-logger.info(f"PORT from env: {os.getenv('PORT', 'not set')}")
+
+env_loaded = load_dotenv(env_file)
+if not env_loaded:
+    raise FileNotFoundError(f"Environment file not found: {env_file}")
+logger.info(f"Env file loaded successfully")
+
+port = os.getenv('PORT')
+if not port:
+    raise ValueError("PORT not set in environment file")
+logger.info(f"PORT from env: {port}")
 
 app = FastAPI()
-
-# Add CORS middleware for development
-if env == 'development':
-    app.add_middleware(
-        CORSMiddleware,
-        allow_origins=["http://localhost:5173"],  # Vite dev server
-        allow_credentials=True,
-        allow_methods=["*"],
-        allow_headers=["*"],
-    )
-    logger.info("CORS enabled for development")
-
-DIST_PATH = Path(__file__).parent.parent / "client" / "dist"
 
 # API routes
 @app.get("/api/health")
@@ -52,6 +44,7 @@ def servertime():
 
 # Serve frontend react in production
 # in dev use vite dev server
+DIST_PATH = Path(__file__).parent.parent / "client" / "dist"
 @app.get("/{path:path}")
 def serve_frontend(path: str):
     if not DIST_PATH.exists():
