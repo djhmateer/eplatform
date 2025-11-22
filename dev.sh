@@ -1,7 +1,8 @@
 # notes on how to start the app normally in dev (not debug which is to use launch.json)
 # python
-cd server 
-uv run uvicorn main:app --reload
+cd server
+export $(grep -v '^#' .env.development | xargs)
+uv run uvicorn main:app --reload --port ${PORT:-8000}
 
 # react - vite - port 5173 - custom node webserver
 cd client 

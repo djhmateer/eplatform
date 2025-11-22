@@ -2,6 +2,11 @@ from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
+import os
+from dotenv import load_dotenv
+
+# Load environment variables
+load_dotenv()
 
 app = FastAPI()
 
@@ -12,6 +17,12 @@ DIST_PATH = Path(__file__).parent.parent / "client" / "dist"
 @app.get("/api/health")
 def health():
     return {"status": "ok"}
+
+
+@app.get("/api/servertime")
+def servertime():
+    from datetime import datetime
+    return {"time": datetime.utcnow().isoformat() + "Z"}
 
 
 # Serve frontend in production
