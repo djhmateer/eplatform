@@ -1,13 +1,8 @@
 #!/bin/bash
 
-# Load production environment variables to get PORT
-cd "$(dirname "$0")/server"
-export $(grep -v '^#' .env.production | xargs)
-cd ..
-
 # Kill any existing instances
-echo "Killing anything on port ${PORT:-3000}..."
-lsof -ti:${PORT:-3000} | xargs -r kill -9
+echo "Killing anything on port 3000..."
+sudo netstat -tulnp | grep 3000 | awk '{print $7}' | cut -d'/' -f1 | xargs -r sudo kill -9
 
 echo "Step 1: Pulling latest changes..."
 git pull
@@ -26,14 +21,14 @@ uv sync
 
 echo "Step 5: Starting FastAPI server..."
 
-# Load production environment variables
-export $(grep -v '^#' .env.production | xargs)
+# uv run uvicorn main:app --host 0.0.0.0 --port 8000
+# am running on 3000 purely for ease of my test prod env which is setup to forward to 3000 for nextjs projets
 
 # see notes on workers
-uv run uvicorn main:app --host 0.0.0.0 --port ${PORT:-3000} --workers 4
+# uv run uvicorn main:app --host 0.0.0.0 --port 3000 --workers 4
+uv run uvicorn main:app --host 0.0.0.0 --port 3000
 
 #   For even better performance, consider using Gunicorn with uvicorn workers:
 #   gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 127.0.0.1:8000
 
 #   This gives you Gunicorn's process management with uvicorn's async performance.
-

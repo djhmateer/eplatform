@@ -1,5 +1,7 @@
 # notes on how to start the app normally in dev (not debug which is to use launch.json)
 # python
+
+```bash
 cd server
 export $(grep -v '^#' .env.development | xargs)
 uv run uvicorn main:app --reload --port ${PORT:-8000}
@@ -16,3 +18,4 @@ pnpm build
 pnpm preview
 
 pnpm lint
+```
