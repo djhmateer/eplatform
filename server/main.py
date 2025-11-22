@@ -1,22 +1,38 @@
 from fastapi import FastAPI
-from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
+from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 import os
+import logging
+from datetime import datetime, timezone
 from dotenv import load_dotenv
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
 # Load environment-specific variables
 env = os.getenv('ENVIRONMENT', 'development')
 env_file = f'.env.{env}'
 loaded = load_dotenv(env_file)
-print(f"[STARTUP] Environment: {env}")
-print(f"[STARTUP] Loading env file: {env_file} ({'SUCCESS' if loaded else 'NOT FOUND - using defaults'})")
-print(f"[STARTUP] PORT from env: {os.getenv('PORT', 'not set')}")
+logger.info(f"Environment: {env}")
+logger.info(f"Loading env file: {env_file} ({'SUCCESS' if loaded else 'NOT FOUND'})")
+logger.info(f"PORT from env: {os.getenv('PORT', 'not set')}")
 
 app = FastAPI()
 
-DIST_PATH = Path(__file__).parent.parent / "client" / "dist"
+# Add CORS middleware for development
+if env == 'development':
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=["http://localhost:5173"],  # Vite dev server
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
+    logger.info("CORS enabled for development")
 
+DIST_PATH = Path(__file__).parent.parent / "client" / "dist"
 
 # API routes
 @app.get("/api/health")
@@ -26,11 +42,10 @@ def health():
 
 @app.get("/api/servertime")
 def servertime():
-    from datetime import datetime
-    return {"time": datetime.utcnow().isoformat() + "Z"}
+    return {"time": datetime.now(timezone.utc).isoformat()}
 
-
-# Serve frontend in production
+# Serve frontend react in production
+# in dev use vite dev server
 @app.get("/{path:path}")
 def serve_frontend(path: str):
     if not DIST_PATH.exists():
