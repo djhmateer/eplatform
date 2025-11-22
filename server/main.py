@@ -5,8 +5,10 @@ from pathlib import Path
 import os
 from dotenv import load_dotenv
 
-# Load environment variables
-load_dotenv()
+# Load environment-specific variables
+env = os.getenv('ENVIRONMENT', 'development')
+env_file = f'.env.{env}'
+load_dotenv(env_file)
 
 app = FastAPI()
 

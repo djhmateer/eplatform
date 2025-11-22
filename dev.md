@@ -3,8 +3,8 @@
 
 ```bash
 cd server
-export $(grep -v '^#' .env.development | xargs)
-uv run uvicorn main:app --reload --port ${PORT:-8000}
+export ENVIRONMENT=development
+uv run uvicorn main:app --reload --port 8000
 
 # react - vite - port 5173 - custom node webserver
 cd client 

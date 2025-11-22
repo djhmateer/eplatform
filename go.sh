@@ -21,14 +21,10 @@ uv sync
 
 echo "Step 5: Starting FastAPI server..."
 
-# uv run uvicorn main:app --host 0.0.0.0 --port 8000
-# am running on 3000 purely for ease of my test prod env which is setup to forward to 3000 for nextjs projets
+# Set production environment
+export ENVIRONMENT=production
 
-# see notes on workers
+# see notes on workers for production deployment
 # uv run uvicorn main:app --host 0.0.0.0 --port 3000 --workers 4
 uv run uvicorn main:app --host 0.0.0.0 --port 3000
 
-#   For even better performance, consider using Gunicorn with uvicorn workers:
-#   gunicorn main:app -w 4 -k uvicorn.workers.UvicornWorker --bind 127.0.0.1:8000
-
-#   This gives you Gunicorn's process management with uvicorn's async performance.
