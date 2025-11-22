@@ -8,7 +8,10 @@ from dotenv import load_dotenv
 # Load environment-specific variables
 env = os.getenv('ENVIRONMENT', 'development')
 env_file = f'.env.{env}'
-load_dotenv(env_file)
+loaded = load_dotenv(env_file)
+print(f"[STARTUP] Environment: {env}")
+print(f"[STARTUP] Loading env file: {env_file} ({'SUCCESS' if loaded else 'NOT FOUND - using defaults'})")
+print(f"[STARTUP] PORT from env: {os.getenv('PORT', 'not set')}")
 
 app = FastAPI()
 
