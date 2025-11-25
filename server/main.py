@@ -42,6 +42,19 @@ def health():
 def servertime():
     return {"time": datetime.now(timezone.utc).isoformat()}
 
+
+@app.get("/api/users")
+def users():
+    return {
+        "users": [
+            {"id": 1, "name": "Alice Johnson", "email": "alice@example.com", "role": "Admin"},
+            {"id": 2, "name": "Bob Smith", "email": "bob@example.com", "role": "User"},
+            {"id": 3, "name": "Charlie Brown", "email": "charlie@example.com", "role": "User"},
+            {"id": 4, "name": "Diana Prince", "email": "diana@example.com", "role": "Moderator"},
+            {"id": 5, "name": "Ethan Hunt", "email": "ethan@example.com", "role": "User"},
+        ]
+    }
+
 # Serve frontend react in production
 # in dev use vite dev server
 DIST_PATH = Path(__file__).parent.parent / "client" / "dist"
