@@ -7,14 +7,14 @@ sudo netstat -tulnp | grep 3000 | awk '{print $7}' | cut -d'/' -f1 | xargs -r su
 echo "Step 1: Pulling latest changes..."
 git pull
 
-echo "Step 2: Updating frontend dependencies with pnpm..."
+echo "Step 2: Updating CLIENT FRONTEND dependencies with pnpm..."
 cd client
 pnpm install --frozen-lockfile
 
 echo "Step 3: Building frontend with pnpm..."
 pnpm build
 
-echo "Step 4: Installing backend dependencies with uv lock --upgrade and uv sync..."
+echo "Step 4: Installing SERVER BACKEND dependencies with uv lock --upgrade and uv sync..."
 cd ../server
 uv lock --upgrade
 uv sync

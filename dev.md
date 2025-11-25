@@ -2,16 +2,20 @@
 
 
 ```bash
-cd server
-ENVIRONMENT=development uv run uvicorn main:app --reload --port 8000
 
+
+# CLIENT FRONTEND
 # react - vite - port 5173 - custom node webserver
 cd client 
+pnpm update
 pnpm dev
 
+# SERVER BACKEND
+cd server
+uv lock --upgrade
+uv sync
 
-
-
+ENVIRONMENT=development uv run uvicorn main:app --reload --port 8000
 
 ## Other front end commands
 pnpm build
