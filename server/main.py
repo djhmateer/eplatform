@@ -5,6 +5,7 @@ import os
 import logging
 from datetime import datetime, timezone
 from dotenv import load_dotenv
+import pymysql
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -30,6 +31,25 @@ if not port:
     raise ValueError("PORT not set in environment file")
 logger.info(f"PORT from env: {port}")
 
+# MySQL configuration
+MYSQL_HOST = os.getenv('MYSQL_HOST', 'localhost')
+MYSQL_USER = os.getenv('MYSQL_USER')
+MYSQL_PASSWORD = os.getenv('MYSQL_PASSWORD')
+MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
+
+if not all([MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE]):
+    raise ValueError("MySQL credentials not set in environment file")
+
+def get_db_connection():
+    return pymysql.connect(
+        host=MYSQL_HOST,
+        user=MYSQL_USER,
+        password=MYSQL_PASSWORD,
+        database=MYSQL_DATABASE,
+        charset='utf8mb4',
+        cursorclass=pymysql.cursors.DictCursor
+    )
+
 app = FastAPI()
 
 # API routes
@@ -45,15 +65,14 @@ def servertime():
 
 @app.get("/api/users")
 def users():
-    return {
-        "users": [
-            {"id": 1, "name": "Alice Johnson", "email": "alice@example.com", "role": "Admin"},
-            {"id": 2, "name": "Bob Smith", "email": "bob@example.com", "role": "User"},
-            {"id": 3, "name": "Charlie Brown", "email": "charlie@example.com", "role": "User"},
-            {"id": 4, "name": "Diana Prince", "email": "diana@example.com", "role": "Moderator"},
-            {"id": 5, "name": "Ethan Hunt", "email": "ethan@example.com", "role": "User"},
-        ]
-    }
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM user")
+            results = cursor.fetchall()
+        return {"users": results}
+    finally:
+        conn.close()
 
 # Serve frontend react in production
 # in dev use vite dev server

@@ -13,8 +13,8 @@ function App() {
             <Link to="/" className="text-xl font-semibold text-slate-900 hover:text-slate-700 transition-colors">EPlatform</Link>
             <nav className="flex gap-6">
               <Link to="/search" className="text-slate-600 hover:text-slate-900 transition-colors">Search</Link>
-              <Link to="/users" className="text-slate-600 hover:text-slate-900 transition-colors">Users</Link>
               <Link to="/servertime" className="text-slate-600 hover:text-slate-900 transition-colors">Server Time</Link>
+              <Link to="/users" className="text-slate-600 hover:text-slate-900 transition-colors">Users</Link>
             </nav>
           </div>
           <button className="px-4 py-2 bg-slate-900 text-white rounded-md hover:bg-slate-800 transition-colors">
