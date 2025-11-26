@@ -1,11 +1,21 @@
-from fastapi import FastAPI
-from fastapi.responses import FileResponse
+from fastapi import FastAPI, Cookie, HTTPException, Depends
+from fastapi.responses import FileResponse, JSONResponse
 from pathlib import Path
 import os
 import logging
+import secrets
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 import pymysql
+from pydantic import BaseModel
+from argon2 import PasswordHasher
+from argon2.exceptions import VerifyMismatchError
+
+ph = PasswordHasher()
+
+def hash_password(password: str) -> str:
+    """Hash a password using Argon2."""
+    return ph.hash(password)
 
 # Configure logging
 logging.basicConfig(level=logging.INFO)
@@ -60,7 +70,44 @@ def query_db(sql, params=None, fetchone=False):
     finally:
         conn.close()
 
+def execute_db(sql, params=None):
+    """Execute a write query (INSERT, UPDATE, DELETE). Returns last insert id."""
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(sql, params)
+            conn.commit()
+            return cursor.lastrowid
+    finally:
+        conn.close()
+
 app = FastAPI()
+
+# Pydantic models
+class LoginRequest(BaseModel):
+    username: str
+    password: str
+
+# Auth dependency
+def get_current_user(session_id: str = Cookie(None)):
+    """Validate session cookie and return current user."""
+    if not session_id:
+        logger.warning(" Auth failed: No session cookie provided")
+        raise HTTPException(status_code=401, detail="Not logged in")
+
+    session = query_db(
+        "SELECT s.*, u.id as user_id, u.username FROM session s "
+        "JOIN user u ON s.user_id = u.id "
+        "WHERE s.session_id = %s AND s.expires_at > NOW()",
+        (session_id,),
+        fetchone=True
+    )
+
+    if not session:
+        logger.warning(f"Auth failed: Invalid or expired session")
+        raise HTTPException(status_code=401, detail="Invalid or expired session")
+
+    return {"id": session["user_id"], "username": session["username"]}
 
 # API routes
 @app.get("/api/health")
@@ -73,9 +120,63 @@ def servertime():
     return {"time": datetime.now(timezone.utc).isoformat()}
 
 
+@app.post("/api/login")
+def login(credentials: LoginRequest):
+    """Authenticate user and create session."""
+    user = query_db(
+        "SELECT id, username, password FROM user WHERE username = %s",
+        (credentials.username,),
+        fetchone=True
+    )
+
+    if not user:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    try:
+        ph.verify(user["password"], credentials.password)
+    except VerifyMismatchError:
+        raise HTTPException(status_code=401, detail="Invalid credentials")
+
+    # Create session
+    session_id = secrets.token_urlsafe(32)
+    execute_db(
+        "INSERT INTO session (session_id, user_id, expires_at) "
+        "VALUES (%s, %s, DATE_ADD(NOW(), INTERVAL 7 DAY))",
+        (session_id, user["id"])
+    )
+
+    response = JSONResponse(content={"message": "Login successful", "username": user["username"]})
+    response.set_cookie(
+        key="session_id",
+        value=session_id,
+        httponly=True,
+        secure=os.getenv("ENVIRONMENT") == "production",
+        samesite="lax",
+        max_age=60 * 60 * 24 * 7  # 7 days
+    )
+    return response
+
+
+@app.post("/api/logout")
+def logout(session_id: str = Cookie(None)):
+    """Destroy session and clear cookie."""
+    if session_id:
+        execute_db("DELETE FROM session WHERE session_id = %s", (session_id,))
+
+    response = JSONResponse(content={"message": "Logged out"})
+    response.delete_cookie(key="session_id")
+    return response
+
+
+@app.get("/api/me")
+def get_me(user = Depends(get_current_user)):
+    """Get current logged-in user info."""
+    return {"user": user}
+
+
 @app.get("/api/users")
-def users():
-    return {"users": query_db("SELECT * FROM user")}
+def users(user = Depends(get_current_user)):
+    return {"users": query_db("SELECT id, username FROM user")}
 
 # Serve frontend react in production
 # in dev use vite dev server
