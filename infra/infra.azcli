@@ -122,28 +122,39 @@ az network nsg rule create \
     --access allow
 
 
+
 # copy source code to new VM
-# cd .. # so now will be in project root
+cd .. # so now will be in project root
 
-# rm -f all.zip # remove old zip file even if it doesn't exist
+rm -f all.zip # remove old zip file even if it doesn't exist
 
-# zip -r all.zip . > /dev/null # redirect stdout to /dev/null
-
-# printf "\n\n\** A. RUN CREATE WEBSERVER SCRIPT using SCP then run VIA SSH ** \n\n"
-
-# this is great as you can see the output of the script
+zip -r all.zip . > /dev/null # redirect stdout to /dev/null
 
 # I have seen this first scp timeout so retry until it works
 n=0
 until [ "$n" -ge 5 ]
 do
-   scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null create_webserver.sh dave@${dnsname}.westeurope.cloudapp.azure.com:/home/dave/ && break
+   scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null all.zip dave@${dnsname}.westeurope.cloudapp.azure.com:/home/dave/ && break
    n=$((n+1)) 
    sleep 15
 done
 
-# Run the script on the remote machine
+
+scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null create_webserver.sh dave@${dnsname}.westeurope.cloudapp.azure.com:/home/dave/ 
+
+# Run create_webserver.sh script on the remote machine
+# this is great as you can see the output of the script
+# this will call the unzip of all.zip
 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null dave@${dnsname}.westeurope.cloudapp.azure.com 'sed -i "s/\r$//" create_webserver.sh && chmod +x create_webserver.sh && /home/dave/create_webserver.sh'
+
+
+
+
+
+
+
+
+
 
 
 
