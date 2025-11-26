@@ -34,7 +34,7 @@ function App() {
 
       <footer className="bg-white border-t border-slate-200">
         <div className="max-w-5xl mx-auto px-6 py-4 text-center text-slate-500 text-sm">
-          &copy; {new Date().getFullYear()} EPlatform. All rights reserved.
+          &copy; {new Date().getFullYear()} EPlatform. 
         </div>
       </footer>
     </div>
