@@ -85,7 +85,11 @@ app = FastAPI()
 
 # Pydantic models
 class LoginRequest(BaseModel):
-    username: str
+    email: str
+    password: str
+
+class RegisterRequest(BaseModel):
+    email: str
     password: str
 
 # Auth dependency
@@ -96,7 +100,7 @@ def get_current_user(session_id: str = Cookie(None)):
         raise HTTPException(status_code=401, detail="Not logged in")
 
     session = query_db(
-        "SELECT s.*, u.id as user_id, u.username FROM session s "
+        "SELECT s.*, u.id as user_id, u.email FROM session s "
         "JOIN user u ON s.user_id = u.id "
         "WHERE s.session_id = %s AND s.expires_at > NOW()",
         (session_id,),
@@ -107,7 +111,7 @@ def get_current_user(session_id: str = Cookie(None)):
         logger.warning(f"Auth failed: Invalid or expired session")
         raise HTTPException(status_code=401, detail="Invalid or expired session")
 
-    return {"id": session["user_id"], "username": session["username"]}
+    return {"id": session["user_id"], "email": session["email"]}
 
 # API routes
 @app.get("/api/health")
@@ -120,12 +124,33 @@ def servertime():
     return {"time": datetime.now(timezone.utc).isoformat()}
 
 
+@app.post("/api/register")
+def register(data: RegisterRequest):
+    """Register a new user."""
+    existing = query_db(
+        "SELECT id FROM user WHERE email = %s",
+        (data.email,),
+        fetchone=True
+    )
+
+    if existing:
+        raise HTTPException(status_code=400, detail="Email already exists")
+
+    hashed = hash_password(data.password)
+    execute_db(
+        "INSERT INTO user (email, password) VALUES (%s, %s)",
+        (data.email, hashed)
+    )
+
+    return {"message": "Registration successful"}
+
+
 @app.post("/api/login")
 def login(credentials: LoginRequest):
     """Authenticate user and create session."""
     user = query_db(
-        "SELECT id, username, password FROM user WHERE username = %s",
-        (credentials.username,),
+        "SELECT id, email, password FROM user WHERE email = %s",
+        (credentials.email,),
         fetchone=True
     )
 
@@ -145,7 +170,7 @@ def login(credentials: LoginRequest):
         (session_id, user["id"])
     )
 
-    response = JSONResponse(content={"message": "Login successful", "username": user["username"]})
+    response = JSONResponse(content={"message": "Login successful", "email": user["email"]})
     response.set_cookie(
         key="session_id",
         value=session_id,
@@ -176,7 +201,7 @@ def get_me(user = Depends(get_current_user)):
 
 @app.get("/api/users")
 def users(user = Depends(get_current_user)):
-    return {"users": query_db("SELECT id, username FROM user")}
+    return {"users": query_db("SELECT id, email FROM user")}
 
 # Serve frontend react in production
 # in dev use vite dev server

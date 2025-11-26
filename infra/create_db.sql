@@ -6,8 +6,7 @@
 create table user
 (
     id       int auto_increment primary key,
-    username varchar(100) not null unique,
-    email    varchar(200) not null,
+    email    varchar(200) not null unique,
     password varchar(255) not null
 ); 
   
