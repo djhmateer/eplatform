@@ -148,40 +148,39 @@ ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null dave@${dnsname}.
 
 
 
-exit 0
 
 
 # creates /etc/systemd/system/kestrel-osr.service
-az vm run-command invoke \
-    -g ${rg} \
-    -n ${vmname} \
-    --command-id RunShellScript \
-    --scripts @../secrets/create-kestrel-with-secrets.sh
+# az vm run-command invoke \
+#     -g ${rg} \
+#     -n ${vmname} \
+#     --command-id RunShellScript \
+#     --scripts @../secrets/create-kestrel-with-secrets.sh
 
-# /certs directory has been created above
+# # /certs directory has been created above
 
-# I have seen this timeout so retry until it works
-# https://unix.stackexchange.com/questions/82598/how-do-i-write-a-retry-logic-in-script-to-keep-retrying-to-run-it-upto-5-times
-n=0
-until [ "$n" -ge 5 ]
-do
-   scp -o StrictHostKeyChecking=no ../secrets/www_auto-archiver_com.pem dave@${dnsname}.westeurope.cloudapp.azure.com:/certs/ && break
-   n=$((n+1)) 
-   sleep 15
-done
+# # I have seen this timeout so retry until it works
+# # https://unix.stackexchange.com/questions/82598/how-do-i-write-a-retry-logic-in-script-to-keep-retrying-to-run-it-upto-5-times
+# n=0
+# until [ "$n" -ge 5 ]
+# do
+#    scp -o StrictHostKeyChecking=no ../secrets/www_auto-archiver_com.pem dave@${dnsname}.westeurope.cloudapp.azure.com:/certs/ && break
+#    n=$((n+1)) 
+#    sleep 15
+# done
 
-scp -o StrictHostKeyChecking=no ../secrets/www_auto-archiver_com.key dave@${dnsname}.westeurope.cloudapp.azure.com:/certs/
+# scp -o StrictHostKeyChecking=no ../secrets/www_auto-archiver_com.key dave@${dnsname}.westeurope.cloudapp.azure.com:/certs/
 
 
 
-# gets .NET, clones source code, does a release build, starts systemd kestrel service
-# systemd reads from file created on the vm above
-# and sets environmental variables and starts kestrel webserver
-az vm run-command invoke \
-    -g ${rg} \
-    -n ${vmname} \
-    --command-id RunShellScript \
-    --scripts @create_webserver.sh
+# # gets .NET, clones source code, does a release build, starts systemd kestrel service
+# # systemd reads from file created on the vm above
+# # and sets environmental variables and starts kestrel webserver
+# az vm run-command invoke \
+#     -g ${rg} \
+#     -n ${vmname} \
+#     --command-id RunShellScript \
+#     --scripts @create_webserver.sh
 
 # delete old resource groups
 groupstodel=$(az group list --query "[?contains(name, '${rgprefix}')]".name --output tsv)
@@ -198,6 +197,8 @@ do
             --yes
     fi
 done
+
+exit 0
 
 # allow port 80
 az network nsg rule create \
