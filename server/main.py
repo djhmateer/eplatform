@@ -50,6 +50,16 @@ def get_db_connection():
         cursorclass=pymysql.cursors.DictCursor
     )
 
+def query_db(sql, params=None, fetchone=False):
+    """Execute a query and return results. Handles connection lifecycle."""
+    conn = get_db_connection()
+    try:
+        with conn.cursor() as cursor:
+            cursor.execute(sql, params)
+            return cursor.fetchone() if fetchone else cursor.fetchall()
+    finally:
+        conn.close()
+
 app = FastAPI()
 
 # API routes
@@ -65,14 +75,7 @@ def servertime():
 
 @app.get("/api/users")
 def users():
-    conn = get_db_connection()
-    try:
-        with conn.cursor() as cursor:
-            cursor.execute("SELECT * FROM user")
-            results = cursor.fetchall()
-        return {"users": results}
-    finally:
-        conn.close()
+    return {"users": query_db("SELECT * FROM user")}
 
 # Serve frontend react in production
 # in dev use vite dev server
