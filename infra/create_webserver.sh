@@ -76,6 +76,12 @@ export ENVIRONMENT=production
 # uv run python -m uvicorn main:app --host 0.0.0.0
 
 
+## MySQL
+
+sudo apt-get install mysql-server -y
+
+
+
 # nginx
 sudo apt-get install nginx -y
 
@@ -83,3 +89,7 @@ sudo cp /home/dave/infra/nginx.conf /etc/nginx/sites-available/default
 
 sudo systemctl enable nginx
 sudo systemctl restart nginx
+
+# **TODO - create db
+# create prod user - doug
+# create tables
