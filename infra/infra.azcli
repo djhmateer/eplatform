@@ -80,6 +80,7 @@ az network nic create \
 
 # If one of my keys exist 
 # uncomment line below to get ssh keys working
+# I'm actually using the default ~/.ssh/id_rsa_azure.pub key
 filename="../secrets/sshkey-rgb.pub"
 if [ -f "$filename" ]; then
 az vm create \
