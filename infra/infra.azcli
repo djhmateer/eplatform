@@ -163,7 +163,7 @@ do
     fi
 done
 
-exit 0
+# exit 0
 
 # allow port 80
 az network nsg rule create \
