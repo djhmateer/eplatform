@@ -139,7 +139,7 @@ do
    sleep 15
 done
 
-
+cd infra
 scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null create_webserver.sh dave@${dnsname}.westeurope.cloudapp.azure.com:/home/dave/ 
 
 # Run create_webserver.sh script on the remote machine
