@@ -175,7 +175,7 @@ def login(credentials: LoginRequest):
         key="session_id",
         value=session_id,
         httponly=True,
-        secure=False,
+        secure=os.getenv('ENVIRONMENT') == 'production',
         samesite="lax",
         max_age=60 * 60 * 24 * 7  # 7 days
     )
