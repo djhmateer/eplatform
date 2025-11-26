@@ -175,7 +175,7 @@ def login(credentials: LoginRequest):
         key="session_id",
         value=session_id,
         httponly=True,
-        secure=os.getenv('ENVIRONMENT') == 'production',
+        secure=os.getenv('ENVIRONMENT') == 'production' and 'http://192.168.1.179:81/' not in os.getenv('API_URL', ''),
         samesite="lax",
         max_age=60 * 60 * 24 * 7  # 7 days
     )
