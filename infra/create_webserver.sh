@@ -100,11 +100,33 @@ cd /home/dave/server
 uv lock --upgrade
 uv sync
 
-# todo - set up as a service so it restarts on crash or reboot
-# export ENVIRONMENT=production
-# uv run uvicorn main:app --host 0.0.0.0 --port 3000
+# Set up systemd service for the API
+sudo tee /etc/systemd/system/evidenceplatform.service > /dev/null <<EOF
+[Unit]
+Description=Evidence Platform API
+After=network.target mysql.service
 
-#  ENVIRONMENT=production uv run uvicorn main:app --host 0.0.0.0 --port 3000
+[Service]
+Type=simple
+User=dave
+WorkingDirectory=/home/dave/server
+Environment=ENVIRONMENT=production
+ExecStart=/home/dave/.local/bin/uv run uvicorn main:app --host 0.0.0.0 --port 3000
+Restart=always
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+sudo systemctl daemon-reload
+sudo systemctl enable evidenceplatform
+sudo systemctl start evidenceplatform
+
+#   sudo systemctl status evidenceplatform   # Check status
+#   sudo systemctl restart evidenceplatform  # Restart
+#   sudo systemctl stop evidenceplatform     # Stop
+#   sudo journalctl -u evidenceplatform -f   # View logs (live)
 
 # nginx
 sudo apt-get install nginx -y

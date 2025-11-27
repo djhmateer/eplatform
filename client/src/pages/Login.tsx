@@ -67,6 +67,10 @@ function Login() {
       <p className="mt-4 text-center text-slate-600">
         Don't have an account? <Link to="/register" className="text-slate-900 hover:underline">Register</Link>
       </p>
+
+      <p className="mt-4 text-sm text-slate-500">
+        Sample login: davemateer@gmail.com, password: 2
+      </p>
     </div>
   )
 }
