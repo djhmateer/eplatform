@@ -45,4 +45,4 @@ venv/
 secrets/
 all.zip
 
-sshCurrentVm.sh
+infra/sshCurrentVm.sh
