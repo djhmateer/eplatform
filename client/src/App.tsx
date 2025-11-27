@@ -4,6 +4,7 @@ import Home from './pages/Home'
 import Search from './pages/Search'
 import ServerTime from './pages/ServerTime'
 import Users from './pages/Users'
+import Images from './pages/Images'
 import Login from './pages/Login'
 import Register from './pages/Register'
 
@@ -38,6 +39,7 @@ function App() {
               <Link to="/search" className="text-slate-600 hover:text-slate-900 transition-colors">Search</Link>
               <Link to="/servertime" className="text-slate-600 hover:text-slate-900 transition-colors">Server Time</Link>
               <Link to="/users" className="text-slate-600 hover:text-slate-900 transition-colors">Users</Link>
+              <Link to="/images" className="text-slate-600 hover:text-slate-900 transition-colors">Images</Link>
             </nav>
           </div>
           {user ? (
@@ -69,6 +71,7 @@ function App() {
           <Route path="/search" element={<Search />} />
           <Route path="/users" element={<Users />} />
           <Route path="/servertime" element={<ServerTime />} />
+          <Route path="/images" element={<Images />} />
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
         </Routes>

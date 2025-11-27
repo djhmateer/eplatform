@@ -15,7 +15,8 @@ cd server
 uv lock --upgrade
 uv sync
 
-ENVIRONMENT=development uv run uvicorn main:app --reload --port 8000
+# port 8000 by default
+ENVIRONMENT=development uv run uvicorn main:app --reload
 
 ## Other front end commands
 pnpm build

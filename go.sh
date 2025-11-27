@@ -28,7 +28,7 @@ echo "Step 5: Starting FastAPI server..."
 # Set test environment
 export ENVIRONMENT=test
 
-# see notes on workers for production deployment
+# this is for test webserver
 # have hacked in 3000 (not 8000) to as just easier for test as old process for node ran on this.
 uv run uvicorn main:app --host 0.0.0.0 --port 3000
 
