@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-function ServerTime() {
+export default function ServerTime() {
   const [serverTime, setServerTime] = useState<string>('')
 
   useEffect(() => {
@@ -29,5 +29,3 @@ function ServerTime() {
     </div>
   )
 }
-
-export default ServerTime

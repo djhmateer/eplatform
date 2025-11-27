@@ -1,4 +1,4 @@
-function Images() {
+export default function Images() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-slate-900 mb-6">Images</h1>
@@ -22,5 +22,3 @@ function Images() {
     </div>
   )
 }
-
-export default Images

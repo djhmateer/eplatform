@@ -1,4 +1,4 @@
-function Search() {
+export default function Search() {
   return (
     <div>
       <h1 className="text-2xl font-bold text-slate-900 mb-4">Search</h1>
@@ -6,5 +6,3 @@ function Search() {
     </div>
   )
 }
-
-export default Search
