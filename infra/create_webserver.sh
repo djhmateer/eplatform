@@ -104,7 +104,7 @@ Type=simple
 User=dave
 WorkingDirectory=/home/dave/server
 Environment=ENVIRONMENT=production
-ExecStart=/home/dave/.local/bin/uv run uvicorn main:app --host 0.0.0.0 --port 3000
+ExecStart=/home/dave/.local/bin/uv run uvicorn main:app --host 0.0.0.0 
 Restart=always
 RestartSec=5
 

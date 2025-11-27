@@ -90,7 +90,7 @@ def execute_db(sql, params=None):
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info(f"Application started - {env} mode")
+    logger.info(f"Application started - {env}")
     yield
 
 app = FastAPI(lifespan=lifespan)
