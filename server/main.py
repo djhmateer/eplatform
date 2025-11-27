@@ -1,3 +1,4 @@
+from contextlib import asynccontextmanager
 from fastapi import FastAPI, Cookie, HTTPException, Depends, Request
 from fastapi.responses import FileResponse, JSONResponse
 from pathlib import Path
@@ -26,31 +27,19 @@ logging.basicConfig(
             maxBytes=10*1024*1024,  # 10MB
             backupCount=5
         ),
-        logging.StreamHandler()  # Also output to console/journalctl
+        logging.StreamHandler()
     ]
 )
 logger = logging.getLogger(__name__)
 
-
-# Load environment-specific variables
+# Load environment
 env = os.getenv('ENVIRONMENT')
 if not env:
     raise ValueError("ENVIRONMENT variable not set. Must be 'development' or 'production'")
-logger.info(f"Environment: {env}")
 
-# Load environment file from server directory
 env_file = Path(__file__).parent / f'.env.{env}'
-logger.info(f"Env file path: {env_file}")
-
-env_loaded = load_dotenv(env_file)
-if not env_loaded:
+if not load_dotenv(env_file):
     raise FileNotFoundError(f"Environment file not found: {env_file}")
-logger.info(f"Env file loaded successfully")
-
-port = os.getenv('PORT')
-if not port:
-    raise ValueError("PORT not set in environment file")
-logger.info(f"PORT from env: {port}")
 
 # MySQL configuration
 MYSQL_HOST = os.getenv('MYSQL_HOST', 'localhost')
@@ -99,32 +88,23 @@ def execute_db(sql, params=None):
     finally:
         conn.close()
 
-app = FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    logger.info(f"Application started - {env} mode")
+    yield
+
+app = FastAPI(lifespan=lifespan)
 
 @app.middleware("http")
 async def log_request_duration(request: Request, call_next):
     start = time.perf_counter()
     response = await call_next(request)
     duration_ms = (time.perf_counter() - start) * 1000
-
-    # Only log API calls, not static files
-    # if request.url.path.startswith("/api"):
-
-    # Actually log all requests for better visibility
     logger.info(f"{request.method} {request.url.path} - {response.status_code} - {duration_ms:.1f}ms")
-
     return response
 
-@app.on_event("startup")
-def startup_event():
-    logger.info(f"Application started - {env} mode")
-
 # Pydantic models
-class LoginRequest(BaseModel):
-    email: str
-    password: str
-
-class RegisterRequest(BaseModel):
+class AuthRequest(BaseModel):
     email: str
     password: str
 
@@ -162,7 +142,7 @@ def servertime():
 
 
 @app.post("/api/register")
-def register(data: RegisterRequest):
+def register(data: AuthRequest):
     """Register a new user."""
     existing = query_db(
         "SELECT id FROM user WHERE email = %s",
@@ -185,7 +165,7 @@ def register(data: RegisterRequest):
 
 
 @app.post("/api/login")
-def login(credentials: LoginRequest):
+def login(credentials: AuthRequest):
     """Authenticate user and create session."""
     user = query_db(
         "SELECT id, email, password FROM user WHERE email = %s",
@@ -243,7 +223,7 @@ def get_me(user = Depends(get_current_user)):
 
 
 @app.get("/api/users")
-def users(user = Depends(get_current_user)):
+def users(_user = Depends(get_current_user)):
     return {"users": query_db("SELECT id, email FROM user")}
 
 # Serve frontend react in production
