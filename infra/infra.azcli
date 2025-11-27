@@ -11,8 +11,6 @@ cd infra
 
 set -x
 
-# image=Canonical:0001-com-ubuntu-server-focal:20_04-lts-gen2:latest
-# image=Canonical:0001-com-ubuntu-server-noble:24_04-lts:latest
 image=Ubuntu2404 
 
 # Generate a random suffix between 1 and 1000
@@ -39,8 +37,6 @@ subnet=subnet${int}
 publicIPName=publicIP${int}
 nsgname=nsg${int}
 nicName=nic${int}
-
-# echo -e "az group delete --name ${rg} --no-wait --yes \n" > delCurrentRg.sh
 
 # resource group
 az group create \
@@ -122,13 +118,18 @@ az network nsg rule create \
     --access allow
 
 
-
 # copy source code to new VM
+# problem is it is coping __pycache__ , .venv , node_modules etc
+
 cd .. # so now will be in project root
 
 rm -f all.zip # remove old zip file even if it doesn't exist
 
-zip -r all.zip . > /dev/null # redirect stdout to /dev/null
+# zip -r all.zip . > /dev/null # redirect stdout to /dev/null
+# zip -r all.zip . -x "node_modules/*" ".venv/*" "*/__pycache__/*" "dist/*" ".git" ".vscode" ".claude"> /dev/null
+
+zip -r all.zip . -x "*/node_modules/*" "node_modules/*" "*/.venv/*" ".venv/*" "*/__pycache__/*" "*/dist/*" "dist/*" "*/.git/*" ".git/*" "*/.vscode/*" ".vscode/*" "*.claude*" > /dev/null
+
 
 # I have seen this first scp timeout so retry until it works
 n=0
