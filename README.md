@@ -1,267 +1,210 @@
 # EPlatform
 
-A full-stack web application built with React, TypeScript, and FastAPI.
+A full-stack web application with React frontend and Python FastAPI backend, deployed to Azure.
 
-## Architecture Overview
+## Quick Start
 
-This is a monorepo-style project with a clear separation between frontend and backend:
+### Prerequisites
 
-```
-vite-project-3/
-├── client/          # React + TypeScript frontend
-├── server/          # Python FastAPI backend
-└── README.md
-```
+- Node.js 20+ (via nvm)
+- pnpm
+- Python 3.12+
+- uv (Python package manager)
+- MySQL
 
-### Frontend Architecture (Client)
+### Development
 
-**Tech Stack:**
-- **React 19.2** - UI library with modern hooks
-- **TypeScript 5.9** - Type-safe JavaScript
-- **Vite 7.2** - Fast build tool and dev server with HMR
-- **React Router 7.9** - Client-side routing
-- **Tailwind CSS 4.1** - Utility-first CSS framework
-- **SWC** - Fast TypeScript/JavaScript compiler (via @vitejs/plugin-react-swc)
+**1. Start MySQL and create database:**
 
-**Project Structure:**
-```
-client/
-├── src/
-│   ├── pages/          # Route components
-│   │   ├── Home.tsx
-│   │   ├── Search.tsx
-│   │   └── ServerTime.tsx
-│   ├── App.tsx         # Main app with layout and routing
-│   ├── main.tsx        # Entry point with StrictMode
-│   └── index.css       # Global styles
-├── vite.config.ts      # Vite configuration with proxy
-└── package.json
-```
-
-**Key Features:**
-- **Development Proxy**: Vite dev server proxies `/api/*` requests to backend (default: `http://localhost:8000`)
-- **Client-side Routing**: React Router handles navigation without full page reloads
-- **Type Safety**: Full TypeScript coverage with strict mode enabled
-- **Fast Refresh**: SWC-powered hot module replacement
-- **Production Build**: Optimized static assets served by FastAPI in production
-
-**Dev Proxy Configuration** (`client/vite.config.ts:12-17`):
-```typescript
-server: {
-  proxy: {
-    '/api': {
-      target: env.VITE_API_URL || 'http://localhost:8000',
-      changeOrigin: true,
-    },
-  },
-}
-```
-
-### Backend Architecture (Server)
-
-**Tech Stack:**
-- **FastAPI** - Modern Python web framework
-- **Uvicorn** - ASGI server with hot reload
-- **Python 3.12+** - Latest Python with type hints
-- **python-dotenv** - Environment-based configuration
-
-**Project Structure:**
-```
-server/
-├── main.py              # FastAPI app with API routes
-├── pyproject.toml       # UV/pip dependencies
-├── .env.development     # Dev environment config
-├── .env.production      # Prod environment config
-└── .venv/              # Virtual environment
-```
-
-**Key Features:**
-- **Environment-based Config**: Loads `.env.development` or `.env.production` based on `ENVIRONMENT` variable
-- **API Routes**: RESTful endpoints under `/api/*` prefix
-- **Static File Serving**: Serves built React app in production from `client/dist`
-- **Health Check**: `/api/health` endpoint for monitoring
-
-**API Endpoints:**
-- `GET /api/health` - Health check (returns `{"status": "ok"}`)
-- `GET /api/servertime` - Returns current UTC time in ISO format
-- `GET /{path:path}` - Serves React frontend (production only)
-
-**Environment Configuration** (`server/main.py:14-31`):
-Requires `ENVIRONMENT` variable set to `development` or `production`, then loads corresponding `.env` file with required `PORT` variable.
-
-### Data Flow
-
-**Development Mode:**
-1. Vite dev server runs on `http://localhost:5173` (client)
-2. FastAPI runs on `http://localhost:8000` (server)
-3. Browser hits `localhost:5173`, Vite serves React app
-4. React makes API calls to `/api/*`
-5. Vite proxy forwards to `localhost:8000/api/*`
-6. FastAPI responds with JSON
-
-**Production Mode:**
-1. Build frontend: `cd client && npm run build` → outputs to `client/dist`
-2. FastAPI serves both:
-   - API endpoints at `/api/*`
-   - Static files from `client/dist`
-3. Single server on one port (e.g., 8000)
-
-### Component Patterns
-
-**Simplified State Management:**
-Components use minimal state with pragmatic error handling:
-
-```typescript
-// Example: ServerTime.tsx
-function ServerTime() {
-  const [serverTime, setServerTime] = useState<string>('')
-
-  useEffect(() => {
-    fetch('/api/servertime')
-      .then(res => res.json())
-      .then(data => setServerTime(data.time))
-  }, [])
-
-  if (!serverTime) return <div>Loading...</div>
-  return <div>{/* render data */}</div>
-}
-```
-
-**Philosophy:**
-- One state variable when possible (not three for loading/error/data)
-- Let errors surface in console during development
-- Early returns for loading states
-- No over-engineering with complex error boundaries
-
-### Development Workflow
-
-**Start Development Servers:**
 ```bash
-# Terminal 1 - Backend
+sudo mysql < infra/create_db.sql
+```
+
+**2. Start backend (Terminal 1):**
+
+```bash
 cd server
-ENVIRONMENT=development uvicorn main:app --reload --port 8000
-
-# Terminal 2 - Frontend
-cd client
-npm run dev
+ENVIRONMENT=development uv run uvicorn main:app --reload --port 8000
 ```
 
-**Build for Production:**
-```bash
-# Build frontend
-cd client
-npm run build
+**3. Start frontend (Terminal 2):**
 
-# Run production server
-cd ../server
-ENVIRONMENT=production uvicorn main:app --port 8000
-```
-
-**Linting:**
 ```bash
 cd client
-npm run lint
+pnpm install
+pnpm dev
 ```
 
-## Recommendations
+**4. Open browser:** http://localhost:5173
 
-### Immediate Improvements
+Sample login: `davemateer@gmail.com` / `2`
 
-1. **Data Fetching Library**
-   - Consider adding **React Query (TanStack Query)** or **SWR**
-   - Benefits: Built-in caching, automatic refetching, loading states, error handling
-   - Would eliminate manual state management in components
-   - Example: `useQuery(['servertime'], () => fetch('/api/servertime').then(r => r.json()))`
+### Production (Azure VM)
 
-2. **Error Boundary**
-   - Add a global error boundary component to catch React rendering errors
-   - Provides better UX than white screen of death
-   - Can be simple: show error message + reload button
+Deploy a new Azure VM with everything configured:
 
-3. **API Client Layer**
-   - Create a centralized `api/` directory with typed API calls
-   - Example: `api/servertime.ts` exports `getServerTime()` function
-   - Benefits: Type safety, reusability, easier testing
+```bash
+cd infra
+./infra.azcli
+```
 
-4. **Environment Variables**
-   - Add `.env.example` files for both client and server
-   - Document required variables
-   - Client: `VITE_API_URL` (optional, defaults to proxy)
-   - Server: `ENVIRONMENT`, `PORT`
+This script:
+- Creates Azure resource group, VM, networking
+- Copies source code to VM
+- Runs `create_webserver.sh` which installs all dependencies
+- Sets up systemd service for the API
+- Configures nginx as reverse proxy
+- Updates DNS
 
-5. **Logging**
-   - Frontend: Add structured logging (e.g., `console.error` with context)
-   - Backend: Already has logging, consider adding request IDs
+## Project Structure
 
-### Future Enhancements
+```
+├── client/              # React + TypeScript frontend
+│   ├── src/
+│   │   ├── pages/       # Route components
+│   │   └── App.tsx      # Main app with routing
+│   └── public/          # Static assets (images, favicon)
+├── server/              # Python FastAPI backend
+│   ├── main.py          # API routes and auth
+│   ├── logs/            # Application logs
+│   └── .env.*           # Environment configs
+└── infra/               # Deployment scripts
+    ├── infra.azcli      # Azure deployment script
+    ├── create_webserver.sh  # VM provisioning
+    ├── create_db.sql    # Database schema
+    └── nginx.conf       # Nginx configuration
+```
 
-6. **Authentication**
-   - The "Login" button in header is currently non-functional
-   - Consider: JWT tokens, OAuth, or session-based auth
-   - Would need: login/logout endpoints, protected routes, auth state management
+## Tech Stack
 
-7. **Database Layer**
-   - Current app has no persistence
-   - Consider: PostgreSQL (production) + SQLAlchemy/SQLModel
-   - Or: SQLite (development) for simplicity
+**Frontend:**
+- React 19 + TypeScript
+- Vite (build tool)
+- React Router (client-side routing)
+- Tailwind CSS
 
-8. **Testing**
-   - Frontend: Add Vitest + React Testing Library
-   - Backend: Add pytest with test fixtures
-   - E2E: Consider Playwright for critical user flows
+**Backend:**
+- FastAPI + Uvicorn
+- MySQL + PyMySQL
+- Argon2 (password hashing)
+- Session-based authentication
 
-9. **Docker Setup**
-   - Containerize both frontend and backend
-   - `docker-compose.yml` for easy local development
-   - Multi-stage build for production images
+**Infrastructure:**
+- Azure VM (Ubuntu 24.04)
+- Nginx (reverse proxy, SSL)
+- systemd (process management)
+- DNSimple (DNS)
 
-10. **CI/CD Pipeline**
-    - GitHub Actions for: lint, test, build
-    - Automated deployments to staging/production
-    - Health check monitoring after deploy
+## API Endpoints
 
-11. **API Documentation**
-    - FastAPI auto-generates OpenAPI docs at `/docs`
-    - Consider adding: API versioning (`/api/v1/*`), rate limiting
+| Endpoint | Method | Auth | Description |
+|----------|--------|------|-------------|
+| `/api/health` | GET | No | Health check |
+| `/api/servertime` | GET | No | Current UTC time |
+| `/api/register` | POST | No | Create account |
+| `/api/login` | POST | No | Login (sets session cookie) |
+| `/api/logout` | POST | No | Logout (clears session) |
+| `/api/me` | GET | Yes | Current user info |
+| `/api/users` | GET | Yes | List all users |
 
-12. **Performance**
-    - Code splitting in React (lazy loading routes)
-    - Backend: Add caching layer (Redis) if needed
-    - Database connection pooling when DB is added
-    - CDN for static assets in production
+## Authentication
 
-13. **Security Hardening**
-    - Add CORS configuration (currently not configured)
-    - Rate limiting on API endpoints
-    - Input validation with Pydantic models (FastAPI)
-    - Security headers (helmet equivalent for Python)
-    - HTTPS in production
+Session-based auth with secure cookies:
 
-14. **Monitoring & Observability**
-    - Application Performance Monitoring (APM)
-    - Error tracking (Sentry)
-    - Metrics dashboard (Prometheus + Grafana)
-    - Log aggregation (ELK stack or cloud equivalent)
+1. User logs in with email/password
+2. Password verified with Argon2
+3. Session token stored in MySQL, sent as HTTP-only cookie
+4. Subsequent requests validated against session table
+5. Sessions expire after 7 days
 
-### Development Best Practices
+## Environment Configuration
 
-- **Keep it simple**: Current architecture is intentionally minimal - only add complexity when needed
-- **Type safety**: Leverage TypeScript on frontend and type hints on backend
-- **Environment parity**: Keep dev/prod environments as similar as possible
-- **Document decisions**: Update this README when making architectural changes
-- **Review dependencies**: Keep dependencies up to date, audit security regularly
+**Development** (`server/.env.development`):
+```
+ENVIRONMENT=development
+MYSQL_HOST=localhost
+MYSQL_USER=charlie
+MYSQL_PASSWORD=password
+MYSQL_DATABASE=eplatform
+```
 
-## Current State
+**Production** (`server/.env.production`):
+```
+ENVIRONMENT=production
+MYSQL_HOST=localhost
+MYSQL_USER=doug
+MYSQL_PASSWORD=password2
+MYSQL_DATABASE=eplatform
+```
 
-This is a foundational setup suitable for:
-- Prototyping and MVP development
-- Learning full-stack development
-- Small to medium applications
+## Logging
 
-The architecture prioritizes:
-- **Simplicity** over complexity
-- **Developer experience** with fast HMR and type safety
-- **Pragmatic decisions** (e.g., minimal error handling until needed)
-- **Clear separation** between frontend and backend
+Application logs are written to `server/logs/1debug.log` with rotation (10MB max, 5 backups).
 
-As the application grows, implement recommendations incrementally based on actual needs rather than anticipated requirements.
+**View logs on production:**
+```bash
+# Application logs
+tail -f /home/dave/server/logs/1debug.log
+
+# systemd logs
+sudo journalctl -u evidenceplatform -f
+```
+
+## Useful Commands
+
+**Development:**
+```bash
+# Frontend
+cd client && pnpm dev          # Start dev server
+cd client && pnpm build        # Build for production
+
+# Backend
+cd server
+ENVIRONMENT=development uv run uvicorn main:app --reload
+```
+
+**Production (on VM):**
+```bash
+# Service management
+sudo systemctl status evidenceplatform
+sudo systemctl restart evidenceplatform
+sudo systemctl stop evidenceplatform
+
+# View logs
+sudo journalctl -u evidenceplatform -f
+tail -f /home/dave/server/logs/1debug.log
+
+# Nginx
+sudo systemctl restart nginx
+sudo nginx -t  # Test config
+```
+
+**Database:**
+```bash
+sudo mysql eplatform
+# Then: SELECT * FROM user;
+```
+
+## Data Flow
+
+**Development:**
+```
+Browser (localhost:5173)
+    ↓
+Vite Dev Server (serves React, proxies /api/*)
+    ↓
+FastAPI (localhost:8000)
+    ↓
+MySQL
+```
+
+**Production:**
+```
+Browser (https://evidenceplatform.org)
+    ↓
+Nginx (SSL termination, serves static files)
+    ↓
+FastAPI (localhost:3000, via systemd)
+    ↓
+MySQL
+```
