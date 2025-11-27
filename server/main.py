@@ -24,7 +24,7 @@ log_dir = Path(__file__).parent / "logs"
 log_dir.mkdir(exist_ok=True)
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         RotatingFileHandler(
@@ -130,6 +130,7 @@ def get_current_user(session_id: str = Cookie(None)):
     if not session_id:
         raise HTTPException(status_code=401, detail="Not logged in")
 
+    logger.debug("Querying session table for validation")
     session = query_db(
         "SELECT s.*, u.id as user_id, u.email FROM session s "
         "JOIN user u ON s.user_id = u.id "
@@ -139,8 +140,10 @@ def get_current_user(session_id: str = Cookie(None)):
     )
 
     if not session:
+        logger.debug("Session not found or expired")
         raise HTTPException(status_code=401, detail="Invalid or expired session")
 
+    logger.debug(f"Session valid for user: {session['email']}")
     return {"id": session["user_id"], "email": session["email"]}
 
 # API routes
