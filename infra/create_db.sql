@@ -29,3 +29,6 @@ CREATE TABLE session (
     INDEX idx_session_id (session_id),
     INDEX idx_expires_at (expires_at)
 );
+
+--  Seed initial user with password 1
+INSERT INTO user (email, password) values ('davemateer@gmail.com', '$argon2id$v=19$m=65536,t=3,p=4$Fr2iPl70VyMWp9rlNgpooQ$XMzjKuMAJr91p1oZAm4PnNN/jaUUDrAqmljnArN6PqU');

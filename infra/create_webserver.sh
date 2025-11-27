@@ -101,8 +101,10 @@ uv lock --upgrade
 uv sync
 
 # todo - set up as a service so it restarts on crash or reboot
-export ENVIRONMENT=production
+# export ENVIRONMENT=production
 # uv run uvicorn main:app --host 0.0.0.0 --port 3000
+
+#  ENVIRONMENT=production uv run uvicorn main:app --host 0.0.0.0 --port 3000
 
 # nginx
 sudo apt-get install nginx -y

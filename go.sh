@@ -27,6 +27,5 @@ echo "Step 5: Starting FastAPI server..."
 export ENVIRONMENT=production
 
 # see notes on workers for production deployment
-# uv run uvicorn main:app --host 0.0.0.0 --port 3000 --workers 4
 uv run uvicorn main:app --host 0.0.0.0 --port 3000
 
