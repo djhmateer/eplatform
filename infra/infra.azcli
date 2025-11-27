@@ -2,6 +2,9 @@
 
 # File to build evidenceplatform.org webserver
 
+# Track start time
+start_time=$(date +%s)
+
 # For dev purposes only
 cd ..
 git add .
@@ -148,17 +151,6 @@ scp -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null create_webserver
 # this will call the unzip of all.zip
 ssh -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null dave@${dnsname}.westeurope.cloudapp.azure.com 'sed -i "s/\r$//" create_webserver.sh && chmod +x create_webserver.sh && /home/dave/create_webserver.sh'
 
-
-
-
-
-
-
-
-
-
-
-
 # delete old resource groups
 groupstodel=$(az group list --query "[?contains(name, '${rgprefix}')]".name --output tsv)
 
@@ -215,19 +207,25 @@ if [ -f "$filename" ]; then
 
     # get the first and only line
     token=$(head -n 1 $filename)
-    echo "token is $token"
+    # echo "token is $token"
 
     # update DNS
-    # curl https://api.dnsimple.com/v2/63829/zones/auto-archiver.com/records/41694019 -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" -X PATCH -d "$(generate_post_data)" 
     curl https://api.dnsimple.com/v2/63829/zones/evidenceplatform.org/records/70831671 -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" -X PATCH -d "$(generate_post_data)" 
 
-    # curl https://api.dnsimple.com/v2/63829/zones/auto-archiver.com/records/41694024 -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" -X PATCH -d "$(generate_post_data)" 
     curl https://api.dnsimple.com/v2/63829/zones/evidenceplatform.org/records/70831674 -H "Authorization: Bearer ${token}" -H "Accept: application/json" -H "Content-Type: application/json" -X PATCH -d "$(generate_post_data)" 
 fi
 
 
 echo -e "\nssh -o StrictHostKeyChecking=no dave@${dnsname}.westeurope.cloudapp.azure.com\n" > sshCurrentVm.sh
 
-# echo -e "password is ${adminpassword}" > password.txt
+chmod +x sshCurrentVm.sh
 
-echo -e "http://${dnsname}.westeurope.cloudapp.azure.com"
+# echo -e "password is ${adminpassword}" > password.txt
+# echo -e "http://${dnsname}.westeurope.cloudapp.azure.com"
+
+# Calculate and display elapsed time
+end_time=$(date +%s)
+elapsed=$((end_time - start_time))
+minutes=$((elapsed / 60))
+seconds=$((elapsed % 60))
+echo -e "\n✓ Deployment completed in ${minutes}m ${seconds}s"

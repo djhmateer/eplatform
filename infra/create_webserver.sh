@@ -84,6 +84,25 @@ sudo apt-get install mysql-server -y
 # run the file create_db.sql    
 sudo mysql < /home/dave/infra/create_db.sql
 
+## Build client (frontend React html, jss, and css)
+
+cd /home/dave/client
+
+pnpm install
+
+# creates static files in /home/dave/client/dist
+pnpm build
+
+## Build server
+
+cd /home/dave/server
+
+uv lock --upgrade
+uv sync
+
+# todo - set up as a service so it restarts on crash or reboot
+export ENVIRONMENT=production
+
 
 # nginx
 sudo apt-get install nginx -y
