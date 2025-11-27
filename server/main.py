@@ -1,10 +1,11 @@
-from fastapi import FastAPI, Cookie, HTTPException, Depends
+from fastapi import FastAPI, Cookie, HTTPException, Depends, Request
 from fastapi.responses import FileResponse, JSONResponse
 from pathlib import Path
 import os
 import logging
 from logging.handlers import RotatingFileHandler
 import secrets
+import time
 from datetime import datetime, timezone
 from dotenv import load_dotenv
 import pymysql
@@ -98,6 +99,22 @@ def execute_db(sql, params=None):
 
 app = FastAPI()
 
+@app.middleware("http")
+async def log_request_duration(request: Request, call_next):
+    start = time.perf_counter()
+    response = await call_next(request)
+    duration_ms = (time.perf_counter() - start) * 1000
+
+    # Only log API calls, not static files
+    if request.url.path.startswith("/api"):
+        logger.info(f"{request.method} {request.url.path} - {response.status_code} - {duration_ms:.1f}ms")
+
+    return response
+
+@app.on_event("startup")
+def startup_event():
+    logger.info(f"Application started - {env} mode")
+
 # Pydantic models
 class LoginRequest(BaseModel):
     email: str
@@ -111,7 +128,6 @@ class RegisterRequest(BaseModel):
 def get_current_user(session_id: str = Cookie(None)):
     """Validate session cookie and return current user."""
     if not session_id:
-        logger.warning(" Auth failed: No session cookie provided")
         raise HTTPException(status_code=401, detail="Not logged in")
 
     session = query_db(
@@ -123,7 +139,6 @@ def get_current_user(session_id: str = Cookie(None)):
     )
 
     if not session:
-        logger.warning(f"Auth failed: Invalid or expired session")
         raise HTTPException(status_code=401, detail="Invalid or expired session")
 
     return {"id": session["user_id"], "email": session["email"]}
@@ -149,6 +164,7 @@ def register(data: RegisterRequest):
     )
 
     if existing:
+        logger.warning(f"Registration failed: email already exists - {data.email}")
         raise HTTPException(status_code=400, detail="Email already exists")
 
     hashed = hash_password(data.password)
@@ -157,6 +173,7 @@ def register(data: RegisterRequest):
         (data.email, hashed)
     )
 
+    logger.info(f"New user registered: {data.email}")
     return {"message": "Registration successful"}
 
 
@@ -170,11 +187,13 @@ def login(credentials: LoginRequest):
     )
 
     if not user:
+        logger.warning(f"Login failed: unknown email - {credentials.email}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     try:
         ph.verify(user["password"], credentials.password)
     except VerifyMismatchError:
+        logger.warning(f"Login failed: wrong password - {credentials.email}")
         raise HTTPException(status_code=401, detail="Invalid credentials")
 
     # Create session
@@ -185,6 +204,7 @@ def login(credentials: LoginRequest):
         (session_id, user["id"])
     )
 
+    logger.info(f"User logged in: {credentials.email}")
     response = JSONResponse(content={"message": "Login successful", "email": user["email"]})
     response.set_cookie(
         key="session_id",
@@ -202,6 +222,7 @@ def logout(session_id: str = Cookie(None)):
     """Destroy session and clear cookie."""
     if session_id:
         execute_db("DELETE FROM session WHERE session_id = %s", (session_id,))
+        logger.info("User logged out")
 
     response = JSONResponse(content={"message": "Logged out"})
     response.delete_cookie(key="session_id")
