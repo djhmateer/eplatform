@@ -7,6 +7,11 @@ CREATE DATABASE eplatform
 
 USE eplatform;
 
+CREATE USER 'doug'@'%' IDENTIFIED WITH caching_sha2_password BY 'password2';
+
+GRANT ALL PRIVILEGES ON *.* TO 'doug'@'%' WITH GRANT OPTION;
+FLUSH PRIVILEGES;
+
 create table user
 (
     id       int auto_increment primary key,
