@@ -9,7 +9,9 @@ git pull
 
 echo "Step 2: Updating CLIENT FRONTEND dependencies with pnpm..."
 cd client
-pnpm install --frozen-lockfile
+# pnpm install --frozen-lockfile
+# may modify lockfile 
+pnpnm install
 
 echo "Step 3: Building frontend with pnpm..."
 pnpm build

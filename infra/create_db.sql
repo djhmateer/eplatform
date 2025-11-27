@@ -1,7 +1,11 @@
- -- CREATE DATABASE eplatform
---   CHARACTER SET utf8mb4
---   COLLATE utf8mb4_unicode_ci;
 
+-- todo move to utf8mb4_0900_ai_ci once I know this is all working
+
+CREATE DATABASE eplatform
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;
+
+USE eplatform;
 
 create table user
 (

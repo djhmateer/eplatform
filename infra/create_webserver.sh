@@ -80,6 +80,9 @@ export ENVIRONMENT=production
 
 sudo apt-get install mysql-server -y
 
+# create database and user and tables and sample data
+# run the file create_db.sql    
+sudo mysql < /home/dave/infra/create_db.sql
 
 
 # nginx
