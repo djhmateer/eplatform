@@ -100,7 +100,9 @@ async def log_request_duration(request: Request, call_next):
     start = time.perf_counter()
     response = await call_next(request)
     duration_ms = (time.perf_counter() - start) * 1000
-    logger.info(f"{request.method} {request.url.path} - {response.status_code} - {duration_ms:.1f}ms")
+
+    client_ip = request.headers.get("X-Real-IP", request.client.host)
+    logger.info(f"{client_ip} - {request.method} {request.url.path} - {response.status_code} - {duration_ms:.1f}ms")
     return response
 
 # Pydantic models
