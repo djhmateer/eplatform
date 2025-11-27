@@ -3,6 +3,7 @@ from fastapi.responses import FileResponse, JSONResponse
 from pathlib import Path
 import os
 import logging
+from logging.handlers import RotatingFileHandler
 import secrets
 from datetime import datetime, timezone
 from dotenv import load_dotenv
@@ -18,7 +19,21 @@ def hash_password(password: str) -> str:
     return ph.hash(password)
 
 # Configure logging
-logging.basicConfig(level=logging.INFO)
+log_dir = Path(__file__).parent / "logs"
+log_dir.mkdir(exist_ok=True)
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(levelname)s - %(message)s',
+    handlers=[
+        RotatingFileHandler(
+            log_dir / "app.log",
+            maxBytes=10*1024*1024,  # 10MB
+            backupCount=5
+        ),
+        logging.StreamHandler()  # Also output to console/journalctl
+    ]
+)
 logger = logging.getLogger(__name__)
 
 # Load environment-specific variables
