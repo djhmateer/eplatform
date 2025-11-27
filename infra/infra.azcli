@@ -131,7 +131,7 @@ rm -f all.zip # remove old zip file even if it doesn't exist
 # zip -r all.zip . > /dev/null # redirect stdout to /dev/null
 # zip -r all.zip . -x "node_modules/*" ".venv/*" "*/__pycache__/*" "dist/*" ".git" ".vscode" ".claude"> /dev/null
 
-zip -r all.zip . -x "*/node_modules/*" "node_modules/*" "*/.venv/*" ".venv/*" "*/__pycache__/*" "*/dist/*" "dist/*" "*/.git/*" ".git/*" "*/.vscode/*" ".vscode/*" "*.claude*" > /dev/null
+zip -r all.zip . -x "*/node_modules/*" "node_modules/*" "*/.venv/*" ".venv/*" "*/__pycache__/*" "*/dist/*" "dist/*" "*/.git/*" ".git/*" "*/.vscode/*" ".vscode/*" "*.claude*" "*.env.development*" > /dev/null
 
 
 # I have seen this first scp timeout so retry until it works

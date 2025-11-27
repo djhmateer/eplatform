@@ -13,12 +13,6 @@ from pydantic import BaseModel
 from argon2 import PasswordHasher
 from argon2.exceptions import VerifyMismatchError
 
-ph = PasswordHasher()
-
-def hash_password(password: str) -> str:
-    """Hash a password using Argon2."""
-    return ph.hash(password)
-
 # Configure logging
 log_dir = Path(__file__).parent / "logs"
 log_dir.mkdir(exist_ok=True)
@@ -28,7 +22,7 @@ logging.basicConfig(
     format='%(asctime)s - %(levelname)s - %(message)s',
     handlers=[
         RotatingFileHandler(
-            log_dir / "app.log",
+            log_dir / "1debug.log",
             maxBytes=10*1024*1024,  # 10MB
             backupCount=5
         ),
@@ -36,6 +30,7 @@ logging.basicConfig(
     ]
 )
 logger = logging.getLogger(__name__)
+
 
 # Load environment-specific variables
 env = os.getenv('ENVIRONMENT')
@@ -65,6 +60,13 @@ MYSQL_DATABASE = os.getenv('MYSQL_DATABASE')
 
 if not all([MYSQL_USER, MYSQL_PASSWORD, MYSQL_DATABASE]):
     raise ValueError("MySQL credentials not set in environment file")
+
+ph = PasswordHasher()
+
+def hash_password(password: str) -> str:
+    """Hash a password using Argon2."""
+    return ph.hash(password)
+
 
 def get_db_connection():
     return pymysql.connect(
@@ -106,8 +108,10 @@ async def log_request_duration(request: Request, call_next):
     duration_ms = (time.perf_counter() - start) * 1000
 
     # Only log API calls, not static files
-    if request.url.path.startswith("/api"):
-        logger.info(f"{request.method} {request.url.path} - {response.status_code} - {duration_ms:.1f}ms")
+    # if request.url.path.startswith("/api"):
+
+    # Actually log all requests for better visibility
+    logger.info(f"{request.method} {request.url.path} - {response.status_code} - {duration_ms:.1f}ms")
 
     return response
 

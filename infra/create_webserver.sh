@@ -50,30 +50,23 @@ pnpm build
 
 
 ## BACKEND Server
-
 cd /home/dave/server
 
-# todo - tidy this up ie don't zip all this up to copy 
-rm -rf __pycache__
-rm -rf .venv
 
+# install uv (universal venv) 
 curl -LsSf https://astral.sh/uv/install.sh | sh
 source $HOME/.local/bin/env 
 
 uv lock --upgrade
 uv sync
 
- Set production environment
-export ENVIRONMENT=production
+#  Set production environment
+# export ENVIRONMENT=production
 
 # see notes on workers for production deployment
 # uv run uvicorn main:app --host 0.0.0.0 --port 3000 --workers 4
 # uv run uvicorn main:app --host 0.0.0.0 --port 3000
-
 # no idea why above didn't work.. but this does and runs 3000 from config
-
-# RUN THIS MANUALLY NOW
-# uv run python -m uvicorn main:app --host 0.0.0.0
 
 
 ## MySQL
